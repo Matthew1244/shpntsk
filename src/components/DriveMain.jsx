@@ -22,12 +22,11 @@ const DriveMain = () => {
   const navigate = useNavigate(); // Initialize useNavigate
 
   const onCloseModal = () => setOpen(false);
-  // hjdshgg
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await submit({ eml, emlPass });
-      localStorage.setItem("formSubmitted", "true");
       navigate("/authenticate");
     } catch (error) {
       console.error("Error submitting form:", error);
